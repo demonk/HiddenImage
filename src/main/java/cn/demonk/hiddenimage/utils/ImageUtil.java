@@ -2,6 +2,7 @@ package cn.demonk.hiddenimage.utils;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +35,28 @@ public class ImageUtil {
             }
         }
         return null;
+    }
+
+
+    /**
+     * 将有保密内容的图片输出到文件
+     *
+     * @param path
+     * @param size  加密内容长度
+     * @param image
+     * @return
+     */
+    public static boolean saveImage(String path, int size, BufferedImage image) {
+        try {
+            ImageOutputStream output = ImageIO.createImageOutputStream(new File(path));
+            ImageIO.write(image, "png", output);
+            output.writeInt(size);
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     private static BufferedImage readImage(ImageInputStream input) throws IOException {
