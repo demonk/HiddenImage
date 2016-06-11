@@ -2,8 +2,6 @@ package cn.demonk.hiddenimage.utils.security.rsa;
 
 import javax.crypto.Cipher;
 import java.security.*;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 
 /**
  * Created by ligs on 6/11/16.
@@ -32,17 +30,6 @@ public class RSADecrypt {
     }
 
     private static byte[] decryptWithKey(int mode, Key key, byte[] data) throws Exception {
-//        X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(key);
-//        PKCS8EncodedKeySpec encodedKeySpec=new PKCS8EncodedKeySpec(key);
-//        KeyFactory keyFactory = KeyFactory.getInstance(RSA_ALGORITHM);
-//
-//        Key customKey = null;
-//        if (DECRYPT_MODE_PUBLIC == mode) {
-//            customKey = keyFactory.generatePublic(encodedKeySpec);
-//        } else if (DECRYPT_MODE_PRIVATE == mode) {
-//            customKey = keyFactory.generatePrivate(encodedKeySpec);
-//        }
-
         Cipher cipher = Cipher.getInstance(PADDING_METHOD);
         cipher.init(Cipher.DECRYPT_MODE, key);
 
