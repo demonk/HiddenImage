@@ -1,5 +1,7 @@
 package cn.demonk.hiddenimage.utils;
 
+import java.util.Base64;
+
 /**
  * Created by ligs on 16/6/8.
  */
