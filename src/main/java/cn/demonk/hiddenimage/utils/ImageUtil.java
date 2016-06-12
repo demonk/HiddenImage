@@ -46,7 +46,7 @@ public class ImageUtil {
      * @param image
      * @return
      */
-    public static boolean saveImage(String path, int size, BufferedImage image) {
+    public static boolean saveImage(String path, BufferedImage image, int size) {
         try {
             ImageOutputStream output = ImageIO.createImageOutputStream(new File(path));
             ImageIO.write(image, "png", output);

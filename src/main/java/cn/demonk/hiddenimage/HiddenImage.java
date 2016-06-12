@@ -16,62 +16,83 @@ import java.security.PublicKey;
  */
 public class HiddenImage {
 
-    public static boolean hidden(String imgPath, String content) {
+    private static byte[] compressData(String pubKey, String content) {
         // 1.RSA
-        Pair<PrivateKey, PublicKey> keys = RSAKey.genKey();
-        RSACipher.instance().update(keys.getValue(), keys.getKey());
+//        Pair<PrivateKey, PublicKey> keys = RSAKey.genKey();
+//        RSACipher.instance().update(keys.getValue(), keys.getKey());
+
+        RSACipher.instance().updatePubKey(RSAKey.restoreKey(pubKey));
         byte[] rsa_content = RSACipher.instance().encryptWithPubKey(content.getBytes());
 
         //2. gzip
         byte[] gzip_content = GZipUtil.compress(rsa_content);
+        return gzip_content;
+    }
 
-        BufferedImage bi = ImageUtil.readImage(imgPath);
+    private static int getMinPixelNum(int dataSize) {
+        return dataSize * 4;//4pixel=1byte
+    }
 
-        assert bi != null && gzip_content != null;
+    private static boolean hideByte(BufferedImage bi, byte[] data) {
+        int width = bi.getWidth();
+        int height = bi.getHeight();
+        int minX = bi.getMinX();
+        int minY = bi.getMinY();
 
-        while (bi != null) {
-            int width = bi.getWidth();
-            int height = bi.getHeight();
-            int minX = bi.getMinX();
-            int minY = bi.getMinY();
+        int minPixelNum = getMinPixelNum(data.length);
 
-            int minPixelNum = gzip_content.length * 4;//4pixel=1byte
-
-            if ((width - minX) * (height - minY) < minPixelNum) {
-                System.err.println("need a bigger pic");
-                return false;
-            }
-
+        while ((width - minX) * (height - minY) >= minPixelNum) {
             int index = 0;
             int bitIndicator = 0;//指示当前写到哪一个位段
-            byte curByte = gzip_content[index];
+            byte curByte = data[index];
 
-            outer:
             for (int y = minY; y < height; y++) {
                 for (int x = minX; x < width; x++) {
                     int pixel = bi.getRGB(x, y);
 
-                    pixel &= 0xfc;
-                    pixel |= (curByte & 0x03);
-                    curByte >>= 2;
+                    pixel &= 0xfffc;
+                    pixel |= ((curByte & 0xc0) >> (2 * 3));
+                    curByte <<= 2;
 
                     bi.setRGB(x, y, pixel);
 
-                    if ((bitIndicator = (bitIndicator + 1) % 3) == 0) {
+                    if ((bitIndicator = (bitIndicator + 1) % 4) == 0) {
                         index++;
-                        if (index < gzip_content.length) {
-                            curByte = gzip_content[index];
+                        if (index < data.length) {
+                            curByte = data[index];
                         } else {
-                            break outer;
+                            return true;
                         }
                     }
                 }
             }
-
-            File srcImg = new File(imgPath);
-            File dstImg = new File(srcImg.getParentFile(), "sec_" + srcImg.getName());
-            return ImageUtil.saveImage(dstImg.getAbsolutePath(), gzip_content.length, bi);
         }
+
+        System.out.println("Too small image,num of min pixels: " + minPixelNum);
         return false;
     }
+
+    private static void saveImage(String imgPath, BufferedImage bi, byte[] data) {
+        File srcImg = new File(imgPath);
+        File dstImg = new File(srcImg.getParentFile(), "sec_" + srcImg.getName());
+        ImageUtil.saveImage(dstImg.getAbsolutePath(), bi, data.length);
+    }
+
+    public static boolean hidden(String imgPath, String pubKey, String content) {
+        byte[] gzip_content = compressData(pubKey, content);
+
+        while (gzip_content != null) {
+            BufferedImage bi = ImageUtil.readImage(imgPath);
+            if (bi == null || //
+                    !hideByte(bi, gzip_content)) break;
+
+            saveImage(imgPath, bi, gzip_content);
+
+            return true;
+        }
+
+        return false;
+    }
+
+
 }

@@ -11,8 +11,5 @@ repositories {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-
     testCompile group: 'junit', name: 'junit', version: '4.11'
-
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk16', version: '1.46'
 }

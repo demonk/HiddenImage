@@ -15,7 +15,8 @@ public class RSACipher {
      * public key for RSA
      */
     //TODO 密钥保存在内存，当代码被修改时容易被轻易破解
-    private Pair<PrivateKey, PublicKey> mKey;
+    private PrivateKey mPriKey = null;
+    private PublicKey mPubKey = null;
 
     private RSACipher() {
     }
@@ -33,7 +34,7 @@ public class RSACipher {
      */
     public byte[] encryptWithPubKey(byte[] data) {
         try {
-            return RSAEncrypt.encryptWithPubKey(mKey.getValue(), data);
+            return RSAEncrypt.encryptWithPubKey(mPubKey, data);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -49,21 +50,23 @@ public class RSACipher {
      */
     public byte[] decryptWithPriKey(byte[] data) {
         try {
-            return RSADecrypt.decryptWithPriKey(mKey.getKey(), data);
+            return RSADecrypt.decryptWithPriKey(mPriKey, data);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
+    public void updatePubKey(byte[] pubKey) {
+        mPubKey = RSAKey.getPublicKey(pubKey);
+    }
+
+    public void updatePriKey(byte[] priKey) {
+        mPriKey = RSAKey.getPrivateKey(priKey);
+    }
+
     public void update(byte[] pubkey, byte[] prikey) {
-        PublicKey pubKey = RSAKey.getPublicKey(pubkey);
-        PrivateKey priKey = RSAKey.getPrivateKey(prikey);
-        update(pubKey, priKey);
+        updatePubKey(pubkey);
+        updatePriKey(prikey);
     }
-
-    public void update(PublicKey pubkey, PrivateKey prikey) {
-        mKey = new Pair<PrivateKey, PublicKey>(prikey, pubkey);
-    }
-
 }
